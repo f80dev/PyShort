@@ -1,0 +1,23 @@
+yourls:
+    image: gabrielrf/docker-yourls
+    environment:
+        - YOURL_USER=shifumix
+        - YOURL_PASSWORD=shifumix
+        - YOURLS_SITE=https://f80.fr
+        - YOURLS_URL_CONVERT=62
+        - REDIRECT_MAIN_PAGE=https://f80.fr/bad_links.html
+    links:
+        - yourlsmysql:mysql
+    ports:
+        - 80:80
+    volumes:
+        - ./plugins:/usr/share/nginx/yourls/user/plugins
+    restart: always
+yourlsmysql:
+    image: mysql
+    environment:
+        - MYSQL_ROOT_PASSWORD=PASSWORD
+        - MYSQL_DATABASE=yourls
+    volumes:
+        - ./db:/var/lib/mysql
+    restart: always
