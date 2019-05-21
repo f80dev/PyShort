@@ -10,16 +10,22 @@ from math import floor
 import string, sqlite3
 from urllib.parse import urlparse
 import sys
+import time
 
 #Assuming urls.db is in your app root folder
 def table_check():
-    create_table = "CREATE TABLE WEB_URL (ID INTEGER PRIMARY KEY AUTOINCREMENT,URL TEXT NOT NULL,EXPIRE INTEGER NOT NULL);"
     with sqlite3.connect('urls.db') as conn:
         cursor = conn.cursor()
         try:
-            cursor.execute(create_table)
+            cursor.execute("CREATE TABLE WEB_URL (ID INTEGER PRIMARY KEY AUTOINCREMENT,URL TEXT NOT NULL,EXPIRE INTEGER);")
         except sqlite3.OperationalError:
             pass
+
+        try:
+            cursor.execute("CREATE TABLE STATS (CODE TEXT NOT NULL,DTCONNECT INTEGER NOT NULL,FROMIP TEXT);")
+        except sqlite3.OperationalError:
+            pass
+
 
 
 # Base62 Encoder and Decoder
@@ -72,11 +78,14 @@ def home():
 
     with sqlite3.connect('urls.db') as conn:
         cursor = conn.cursor()
-        #expire_date=datetime.datetime.now()+delayInDay*(1000*3600*24)
+        cursor.execute("SELECT ID FROM WEB_URL WHERE url='"+original_url+"'")
+        rows=cursor.fetchall()
+        if len(rows)==0:
+            result_cursor = cursor.execute("INSERT INTO WEB_URL (URL) VALUES ('%s')" % original_url)
+            encoded_string = toBase62(result_cursor.lastrowid)
+        else:
+            encoded_string=toBase62(rows[0][0])
 
-        insert_row = "INSERT INTO WEB_URL (URL) VALUES ('%s')" % original_url
-        result_cursor = cursor.execute(insert_row)
-        encoded_string = toBase62(result_cursor.lastrowid)
 
     if format=="text":
         result= host + "/"+encoded_string
@@ -92,18 +101,23 @@ def home():
 
 
 @app.route('/<short_url>')
-def redirect_short_url(short_url):
+def redirect_short_url(short_url:str):
     decoded_string = toBase10(short_url)
-    redirect_url = 'http://localhost:5000'
-    with sqlite3.connect('urls.db') as conn:
-        cursor = conn.cursor()
-        select_row = "SELECT URL FROM WEB_URL WHERE ID="+str(decoded_string)
-        result_cursor = cursor.execute(select_row)
-        try:
-            redirect_url = result_cursor.fetchone()[0]
-            print("Redirection vers "+redirect_url)
-        except Exception as e:
-            print(e)
+
+    conn=sqlite3.connect('urls.db')
+
+    cursor = conn.cursor()
+    result_cursor = cursor.execute("SELECT URL FROM WEB_URL WHERE ID="+str(decoded_string))
+    try:
+        redirect_url = result_cursor.fetchone()[0]
+        print("Redirection vers "+redirect_url)
+    except Exception as e:
+        print(e)
+        return "error"
+
+    now=int(round(time.time() * 1000))
+    cursor.execute('''INSERT INTO STATS(CODE,DTCONNECT,FROMIP) VALUES(?,?,?)''',(short_url,now,"test"))
+    conn.commit()
     rc=redirect(redirect_url)
     return rc
 
