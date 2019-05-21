@@ -17,7 +17,7 @@ FROM arm32v7/python:3-alpine
 
 #x86
 #docker build -t f80hub/pyshort . & docker push f80hub/pyshort:latest
-#docker rm -f pyshort && docker pull f80hub/pyshort:latest && docker run --restart=always -p 443:443 --name pyshort -t f80hub/pyshort:latest https://server.f80.fr 443 ssl
+#docker rm -f pyshort && docker pull f80hub/pyshort:latest && docker run --restart=always -p 443:443 --name pyshort -d f80hub/pyshort:latest https://server.f80.fr 443 ssl
 FROM jfloff/alpine-python
 
 

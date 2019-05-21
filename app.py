@@ -1,6 +1,7 @@
 import base64
 import datetime
 import ssl
+import urllib.parse
 from io import BytesIO, StringIO
 
 import pyqrcode
@@ -50,25 +51,37 @@ app = Flask(__name__)
 # http://localhost:8100/short?url=http://shifumix.com&format=img
 #http://207.180.198.227:8100/short?url=http://shifumix.com
 #https://server.f80.fr:8100/short?url=http://shifumix.com&format=text
-@app.route('/short', methods=['GET'])
+@app.route('/short', methods=['POST','GET'])
 def home():
-    original_url = request.args.get('url')
-    token = base64.b64decode(request.args.get('token'))
-    delayInDay=1
+    if request.method=="POST":
+        original_url = request.data.decode("utf-8")
+    else:
+        original_url = urllib.parse.unquote(request.args.get("url"))
+
+    if original_url=="":
+        return "Error: url empty"
+    else:
+        print("A traiter = "+original_url)
+
+    #token = base64.b64decode(request.args.get('token'))
+    #delayInDay=1
 
     format=request.args.get("format","text")
     if urlparse(original_url).scheme == '':
-        original_url = 'http://' + original_url
+        original_url = 'https://' + original_url
 
     with sqlite3.connect('urls.db') as conn:
         cursor = conn.cursor()
-        expire_date=datetime.datetime.now()+delayInDay*(1000*3600*24)
+        #expire_date=datetime.datetime.now()+delayInDay*(1000*3600*24)
 
-        insert_row = "INSERT INTO WEB_URL (URL,EXPIRE) VALUES ('%s',%s)" % (original_url),expire_date
+        insert_row = "INSERT INTO WEB_URL (URL) VALUES ('%s')" % original_url
         result_cursor = cursor.execute(insert_row)
         encoded_string = toBase62(result_cursor.lastrowid)
+
     if format=="text":
-        return host + "/"+encoded_string
+        result= host + "/"+encoded_string
+        print(result)
+        return result
     else:
         res=pyqrcode.create(host+"/"+encoded_string)
         buffer=BytesIO()
@@ -88,9 +101,11 @@ def redirect_short_url(short_url):
         result_cursor = cursor.execute(select_row)
         try:
             redirect_url = result_cursor.fetchone()[0]
+            print("Redirection vers "+redirect_url)
         except Exception as e:
             print(e)
-    return redirect(redirect_url)
+    rc=redirect(redirect_url)
+    return rc
 
 
 if __name__ == '__main__':
