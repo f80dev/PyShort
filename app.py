@@ -14,7 +14,7 @@ import time
 
 #Assuming urls.db is in your app root folder
 def table_check():
-    with sqlite3.connect('urls.db') as conn:
+    with sqlite3.connect('/app/datas/urls.db') as conn:
         cursor = conn.cursor()
         try:
             cursor.execute("CREATE TABLE WEB_URL (ID INTEGER PRIMARY KEY AUTOINCREMENT,URL TEXT NOT NULL,EXPIRE INTEGER);")
@@ -76,7 +76,7 @@ def home():
     if urlparse(original_url).scheme == '':
         original_url = 'https://' + original_url
 
-    with sqlite3.connect('urls.db') as conn:
+    with sqlite3.connect('/app/datas/urls.db') as conn:
         cursor = conn.cursor()
         cursor.execute("SELECT ID FROM WEB_URL WHERE url='"+original_url+"'")
         rows=cursor.fetchall()
@@ -104,7 +104,7 @@ def home():
 def redirect_short_url(short_url:str):
     decoded_string = toBase10(short_url)
 
-    conn=sqlite3.connect('urls.db')
+    conn=sqlite3.connect('/app/datas/urls.db')
 
     cursor = conn.cursor()
     result_cursor = cursor.execute("SELECT URL FROM WEB_URL WHERE ID="+str(decoded_string))
@@ -133,7 +133,7 @@ if __name__ == '__main__':
     else:
         if "ssl" in sys.argv:
             context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
-            context.load_cert_chain("./certs/fullchain.pem", "./certs/privkey.pem")
+            context.load_cert_chain("/app/certs/fullchain.pem", "/app/certs/privkey.pem")
             app.run(host="0.0.0.0", port=_port, debug=False, ssl_context=context)
         else:
             app.run(host="0.0.0.0", port=_port, debug=False)
