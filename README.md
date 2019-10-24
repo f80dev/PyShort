@@ -12,9 +12,9 @@ puis télécharger la dernière version :
 docker pull f80hub/pyshort:latest
 </pre>
 
-enfin créer un répertoire (par exemple /root/data) pour hébergé la base de données 
+enfin créer un répertoire (par exemple /root/data) pour héberger la base de données 
 et un répertoire /root/certs pour stocker le certificat du serveur si vous souhaitez
-une connexion sécurisée
+une connexion sécurisée (fichiers fullchain.pem et privkey.pem)
 puis installer l'image docker simplement par : 
 <pre>
 docker run --restart=always -v /root/datas:/app/datas -v /root/certs:/app/certs -p 443:443 --name pyshort -d f80hub/pyshort:latest domain_server 443 ssl
