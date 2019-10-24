@@ -38,22 +38,6 @@ RUN apk add py3-openssl
 RUN apk --no-cache --update-cache add python3-dev
 
 
-# Install dependencies
-
-#docker build -t f80hub/cluster_bench_arm . & docker push f80hub/cluster_bench_arm:latest
-#docker rm -f clusterbench && docker pull f80hub/cluster_bench_arm:latest
-
-
-#test:docker run -p 5000:5000 -t f80hub/cluster_bench_arm:latest
-
-
-
-#test SocketServer : http://45.77.160.220:5000
-
-#arm
-#docker build -t f80hub/cluster_bench_arm .
-#docker push f80hub/cluster_bench_arm:latest
-
 RUN mkdir /app
 #RUN mkdir /app/certs
 
